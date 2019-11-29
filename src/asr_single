@@ -1,0 +1,34 @@
+#!/usr/bin/env  python
+from websocket import create_connection
+import time 
+import threading
+import sys
+from  multiprocessing import Pool,Queue
+import multiprocessing
+from os import listdir
+from os.path import isfile, join
+import json
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+
+def runf(inputname,outputname):
+    ws =create_connection("ws://10.1.69.101:8083/asr_stream_cn")
+    ws.send('{"lang":"cn"}')
+    f=open(inputname,"rb")
+    resultf=open(outputname,"a")
+    block=f.read()
+    ws.send(block,0x2)
+
+    result =  ws.recv()
+    dic = json.loads(result)
+    textstr=dic['text']
+    textlist=json.loads(textstr)
+    if textlist:
+	textdict = textlist[0]
+    	if textdict['partial'] == False :
+    	    resultf.write(textdict['sentence'])
+    resultf.close()
+
+if __name__ == "__main__":
+    runf(sys.argv[1],sys.argv[2]) 
